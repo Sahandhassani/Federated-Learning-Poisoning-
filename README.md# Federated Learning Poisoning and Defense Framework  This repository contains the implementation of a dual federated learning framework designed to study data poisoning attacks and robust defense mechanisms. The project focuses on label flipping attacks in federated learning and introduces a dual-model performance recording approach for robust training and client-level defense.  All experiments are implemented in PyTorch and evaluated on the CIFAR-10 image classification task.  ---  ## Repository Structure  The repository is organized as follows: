@@ -1,0 +1,45 @@
+# Federated Learning Poisoning and Defense Framework
+
+This repository contains the implementation of a dual federated learning framework designed to study data poisoning attacks and robust defense mechanisms. The project focuses on label flipping attacks in federated learning and introduces a dual-model performance recording approach for robust training and client-level defense.
+
+All experiments are implemented in PyTorch and evaluated on the CIFAR-10 image classification task.
+
+---
+
+## Repository Structure
+
+The repository is organized as follows:
+.
+├── attacks/ # Implementations of data poisoning attacks
+├── defenses/ # Defense and robust training mechanisms
+├── federated/ # Federated learning system logic and aggregation protocols
+├── models/ # Neural network architectures (e.g., CNNs for CIFAR-10)
+├── utils/ # Utility functions (logging, evaluation, helpers)
+└── main.py # Main training and experiment script
+
+Although multiple attack, defense, and model implementations are available, **only a specific subset is activated in the main experiment script**. The exact attack, defense mechanism, and model used for a given experiment are selected and configured in the main script.
+
+---
+
+## Dataset
+
+This project uses the **CIFAR-10** dataset.
+
+If the dataset cannot be fetched automatically due to network or environment restrictions, please download it manually from the official source:
+
+https://www.cs.toronto.edu/~kriz/cifar.html
+
+After downloading, place the dataset in the expected directory as specified in the data-loading utilities.
+
+---
+
+## Running Experiments
+
+To run the main experiment:
+
+1. Ensure all dependencies are installed.
+2. Configure the desired attack, defense mechanism, and model in the main script.
+3. Run the main training file:
+
+```bash
+python main.py
