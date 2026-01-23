@@ -52,23 +52,31 @@ def evaluate_avg_clients(clients, model_fn, test_loader, device, criterion=None)
     loss, acc = evaluate_with_loss(model, test_loader, criterion, device)
     return loss, acc
 
-def evaluate_clients(clients, model_fn, test_loader, device):
-    """
-    Returns dict {client_id: accuracy}
-    """
+# ==================================================
+# EVALUATION (CORRECT + STABLE)
+# ==================================================
+def evaluate_clients(clients, test_loader, device):
     accs = {}
 
-    for c in clients:
-        if not c.active:
+    for client in clients:
+        if not client.active:
             continue
 
-        model = model_fn().to(device)
-        model.load_state_dict(c.model.state_dict())
+        client.model.eval()
+        correct, total = 0, 0
 
-        acc = evaluate(model, test_loader, device)
-        accs[c.id] = acc
+        with torch.no_grad():
+            for x, y in test_loader:
+                x, y = x.to(device), y.to(device)
+                out = client.model(x)
+                pred = out.argmax(dim=1)
+                correct += (pred == y).sum().item()
+                total += y.size(0)
+
+        accs[client.id] = correct / total
 
     return accs
+
 
 def evaluate_with_loss(model, loader, criterion, device):
     model.eval()
@@ -96,3 +104,24 @@ def evaluate_with_loss(model, loader, criterion, device):
     )
 
 
+def evaluate_clients_fixed(clients, test_loader, device):
+    accs = {}
+
+    for client in clients:
+        if not client.active:
+            continue
+
+        client.model.eval()
+        correct, total = 0, 0
+
+        with torch.no_grad():
+            for x, y in test_loader:
+                x, y = x.to(device), y.to(device)
+                out = client.model(x)
+                pred = out.argmax(dim=1)
+                correct += (pred == y).sum().item()
+                total += y.size(0)
+
+        accs[client.id] = correct / total
+
+    return accs
