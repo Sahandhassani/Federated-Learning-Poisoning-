@@ -6,7 +6,7 @@ from attacks.label_flipping import LabelFlippingAttack
 from utils.CIFAR.data_utils import load_CIFAR10
 from utils.dataset import CIFARDataset
 from utils.split import split_clients_only
-from utils.eval import evaluate, evaluate_avg_clients, evaluate_clients , evaluate_with_loss
+from utils.eval import evaluate, evaluate_avg_clients, evaluate_clients , evaluate_with_loss, evaluate_clients_fixed
 from utils.subsample import subsample_dataset
 from utils.optimizer import make_optimizer
 from utils.logger import ExperimentLogger
@@ -46,14 +46,17 @@ def main():
         num_classes=NUM_CLASSES
     )
     
-    defender = WorstClientDefender(patience=3)
+    defender = WorstClientDefender(
+    patience=2,
+    acc_threshold=0.01  # 3%
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # ==================================================
     # EXPERIMENT SETUP
     # ==================================================
-    EXP_DIR = "experiments/exp_040"
+    EXP_DIR = "experiments/exp_042_2"
     config = {
         "dataset": "CIFAR-10",
         "model": "CIFAR10_Model",
@@ -127,7 +130,7 @@ def main():
 
     local_model = model().to(device)
     local_optimizer = make_optimizer(local_model, LR, OPTIMIZER)
-    loss_fn = torch.nn.CrossEntropyLoss()
+        loss_fn = torch.nn.CrossEntropyLoss()
 
     # Match training effort with FL
     CENTRAL_EPOCHS = LOCAL_EPOCHS * ROUNDS
@@ -175,7 +178,7 @@ def main():
 
     local_acc = evaluate(local_model, test_loader, device)
     print("Local training done.")
-    
+       
     # ==================================================
     # FEDERATED + P2P TRAINING (SINGLE CELL)
     # ==================================================
@@ -235,6 +238,7 @@ def main():
 
     for r in range(ROUNDS):
         print(f"\n=== Round {r} ===")
+        print("Active clients:", [c.id for c in server.clients if c.active])
 
         # ==================================================
         # FedAvg round
@@ -320,18 +324,18 @@ def main():
         # ==================================================
         # Defender
         # ==================================================
-        fed_client_accs = evaluate_clients(
-            server.clients, model, test_loader, device
-        )
-        p2p_client_accs = evaluate_clients(
-            p2p_clients, model, test_loader, device
-        )
+        fed_client_accs = {
+            cid: acc for cid, (acc, _) in fed_client_stats.items()
+        }
+
+        p2p_client_accs = {
+            cid: acc for cid, (acc, _) in p2p_client_stats.items()
+        }
 
         suspects = defender.observe(
             round_idx=r,
             fed_client_accs=fed_client_accs,
             p2p_client_accs=p2p_client_accs,
-            logger=logger
         )
 
         defender.quarantine(server.clients, suspects)
@@ -360,7 +364,7 @@ def main():
     # ==================================================
 
     print("\nGenerating plots...")
-    plot_centralized(EXP_DIR)
+    
     plot_fed_global(EXP_DIR)
     plot_fed_clients(EXP_DIR)
     plot_p2p_global(EXP_DIR)
