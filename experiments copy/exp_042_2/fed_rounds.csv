@@ -1,0 +1,2 @@
+round,client_0_acc,client_0_loss,client_1_acc,client_1_loss,client_2_acc,client_2_loss,client_3_acc,client_3_loss,client_4_acc,client_4_loss,mean_acc,mean_loss,test_acc,test_loss
+0,0.1572,2.2821065625057946,0.2336,2.039847880601883,0.31424,1.8196742814414355,0.31072,1.8040089558581918,0.2834,1.8983120163784752,0.259832,1.9687899393571562,0.1496,2.272659576391872

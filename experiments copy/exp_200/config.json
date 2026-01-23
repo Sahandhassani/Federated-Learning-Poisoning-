@@ -1,0 +1,18 @@
+{
+  "dataset": "CIFAR-10",
+  "model": "CIFAR10_Model",
+  "batch_size": 128,
+  "lr": 0.01,
+  "local_epochs": 1,
+  "rounds": 50,
+  "optimizer": "adam",
+  "subsample_fraction": 0.1,
+  "local_ratio": 0.1,
+  "client_percentages": [
+    20,
+    10,
+    25,
+    25,
+    20
+  ]
+}
